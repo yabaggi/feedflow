@@ -1,0 +1,5 @@
+# Local Netlify folder
+.netlify
+server.js
+index.htmlv1
+netlify/functions/rssv1.js

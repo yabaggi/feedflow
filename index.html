@@ -929,6 +929,44 @@ body {
     <ul class="feed-list" id="feedList"></ul>
 
     <div class="add-feed-area">
+      <!-- Preset source picker -->
+      <div class="sidebar-label" style="margin-bottom:8px">Add from presets</div>
+      <select class="add-feed-input" id="presetSelect" style="margin-bottom:8px;cursor:pointer">
+        <option value="">— Pick a source —</option>
+        <optgroup label="Reddit">
+          <option value="reddit::r/AppIdeas::https://www.reddit.com/r/AppIdeas/.rss::#e8c547">r/AppIdeas</option>
+          <option value="reddit::r/startup_ideas::https://www.reddit.com/r/startup_ideas/.rss::#ff6b35">r/startup_ideas</option>
+          <option value="reddit::r/SideProject::https://www.reddit.com/r/SideProject/.rss::#4ade80">r/SideProject</option>
+          <option value="reddit::r/startups::https://www.reddit.com/r/startups/.rss::#60a5fa">r/startups</option>
+          <option value="reddit::r/SaaS::https://www.reddit.com/r/SaaS/.rss::#c084fc">r/SaaS</option>
+          <option value="reddit::r/webdev::https://www.reddit.com/r/webdev/.rss::#f472b6">r/webdev</option>
+          <option value="reddit::r/programming::https://www.reddit.com/r/programming/.rss::#34d399">r/programming</option>
+          <option value="reddit::r/artificial::https://www.reddit.com/r/artificial/.rss::#fb923c">r/artificial</option>
+        </optgroup>
+        <optgroup label="Tech News">
+          <option value="rss::Hacker News::https://news.ycombinator.com/rss::#e8c547">Hacker News</option>
+          <option value="rss::TechCrunch::https://techcrunch.com/feed/::#ff6b35">TechCrunch</option>
+          <option value="rss::The Verge::https://www.theverge.com/rss/index.xml::#4ade80">The Verge</option>
+          <option value="rss::Ars Technica::https://feeds.arstechnica.com/arstechnica/index::#60a5fa">Ars Technica</option>
+          <option value="rss::Wired::https://www.wired.com/feed/rss::#c084fc">Wired</option>
+        </optgroup>
+        <optgroup label="Dev & Product">
+          <option value="rss::CSS Tricks::https://css-tricks.com/feed/::#f472b6">CSS-Tricks</option>
+          <option value="rss::Smashing Mag::https://www.smashingmagazine.com/feed/::#34d399">Smashing Magazine</option>
+          <option value="rss::Dev.to::https://dev.to/feed::#fb923c">Dev.to</option>
+          <option value="rss::Product Hunt::https://www.producthunt.com/feed::#e8c547">Product Hunt</option>
+          <option value="rss::Indie Hackers::https://www.indiehackers.com/feed.xml::#60a5fa">Indie Hackers</option>
+        </optgroup>
+        <optgroup label="AI & Science">
+          <option value="rss::MIT Tech Review::https://www.technologyreview.com/feed/::#ff6b35">MIT Tech Review</option>
+          <option value="rss::OpenAI Blog::https://openai.com/news/rss.xml::#4ade80">OpenAI Blog</option>
+          <option value="rss::HackerNoon::https://hackernoon.com/feed::#c084fc">HackerNoon</option>
+        </optgroup>
+      </select>
+      <button class="add-feed-btn" id="presetAddBtn" style="margin-bottom:10px">＋ Add Selected</button>
+
+      <!-- Custom URL -->
+      <div class="sidebar-label" style="margin-bottom:8px">Or add custom URL</div>
       <input class="add-feed-input" id="addFeedInput" type="url" placeholder="https://example.com/feed.rss"/>
       <button class="add-feed-btn" id="addFeedBtn">＋ Add Feed</button>
     </div>
@@ -996,11 +1034,15 @@ body {
 //  CONFIG
 // ══════════════════════════════════════════
 const DEFAULT_FEEDS = [
+  // Reddit (backend auto-switches to JSON API)
   { url: "https://www.reddit.com/r/AppIdeas/.rss",       name: "r/AppIdeas",       color: "#e8c547" },
   { url: "https://www.reddit.com/r/startup_ideas/.rss",  name: "r/startup_ideas",  color: "#ff6b35" },
   { url: "https://www.reddit.com/r/SideProject/.rss",    name: "r/SideProject",    color: "#4ade80" },
   { url: "https://www.reddit.com/r/startups/.rss",       name: "r/startups",       color: "#60a5fa" },
   { url: "https://www.reddit.com/r/SaaS/.rss",           name: "r/SaaS",           color: "#c084fc" },
+  // Other sources
+  { url: "https://news.ycombinator.com/rss",             name: "Hacker News",      color: "#fb923c" },
+  { url: "https://dev.to/feed",                          name: "Dev.to",            color: "#34d399" },
 ];
 
 const API = (url) => `/.netlify/functions/rss?url=${encodeURIComponent(url)}`;
@@ -1535,6 +1577,25 @@ $('refreshBtn').addEventListener('click', () => {
 // ══════════════════════════════════════════
 //  ADD FEED
 // ══════════════════════════════════════════
+// Preset picker
+$('presetAddBtn').addEventListener('click', async () => {
+  const val = $('presetSelect').value;
+  if (!val) { toast('Pick a source first', 'error'); return; }
+  const parts = val.split('::');
+  const name = parts[1], url = parts[2], color = parts[3];
+  if (state.feeds.find(f => f.url === url)) { toast('Already in your feeds', 'error'); return; }
+  state.feeds.push({ url, name, color });
+  saveState();
+  $('presetSelect').value = '';
+  state.active = state.feeds.length - 1;
+  renderSidebar();
+  try {
+    await fetchFeed(state.feeds[state.active]);
+    renderAll();
+    toast('Added ' + name + '!', 'success');
+  } catch { toast('Could not load feed', 'error'); }
+});
+
 $('addFeedBtn').addEventListener('click', async () => {
   const url = $('addFeedInput').value.trim();
   if (!url) return;
