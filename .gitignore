@@ -2,6 +2,6 @@
 .netlify
 server.js
 index.htmlv1
-netlify/functions/rssv1.js
 notes.md
 index.htmlv2
+netlify/functions/rss.jsv1
