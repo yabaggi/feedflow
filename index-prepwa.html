@@ -4,11 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>FEEDFLOW — RSS Reader</title>
-<link rel="manifest" href="/manifest.json"/>
-<meta name="theme-color" content="#e8c547"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="FeedFlow"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 <style>
@@ -1074,7 +1069,7 @@ body {
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
-      <div class="logo-word">FeedFlow</div>
+      <div class="logo-word">FeedFlowx</div>
       <div class="logo-tagline">RSS Intelligence Reader</div>
     </div>
 
@@ -1995,7 +1990,7 @@ const THEMES = [
 ];
 
 const THEME_KEY = 'feedflow_theme';
-let currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
+let currentTheme = localStorage.getItem(THEME_KEY) || 'forest';
 
 function applyTheme(id) {
   currentTheme = id;
@@ -2043,58 +2038,6 @@ document.addEventListener('click', (e) => {
 applyTheme(currentTheme);
 
 init();
-
-// ── Register Service Worker (PWA) ──────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => {
-        console.log('[PWA] Service worker registered:', reg.scope);
-
-        // Check for updates every 60 seconds
-        setInterval(() => reg.update(), 60000);
-
-        // Notify user when new version is available
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              toast('Update available — refresh to get it', 'info');
-            }
-          });
-        });
-      })
-      .catch((err) => console.warn('[PWA] SW registration failed:', err));
-  });
-}
-
-// ── PWA Install prompt ────────────────────────────────────────────────
-let deferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  // Show install toast after 3 seconds
-  setTimeout(() => {
-    const toastEl = document.createElement('div');
-    toastEl.className = 'toast info';
-    toastEl.style.cssText = 'pointer-events:all;cursor:pointer;';
-    toastEl.innerHTML = '<span>📲</span> Install FeedFlow as an app';
-    toastEl.onclick = () => {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-      toastEl.remove();
-    };
-    document.getElementById('toastContainer').appendChild(toastEl);
-    setTimeout(() => toastEl.remove(), 8000);
-  }, 3000);
-});
-
-window.addEventListener('appinstalled', () => {
-  toast('FeedFlow installed!', 'success');
-  deferredPrompt = null;
-});
 </script>
 </body>
 </html>
