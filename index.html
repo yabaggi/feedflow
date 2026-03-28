@@ -28,6 +28,157 @@
   --sidebar: 280px;
 }
 
+/* ── THEMES ── */
+[data-theme="light"] {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #efefea;
+  --border: #e0e0d8;
+  --accent: #c9a227;
+  --accent2: #e85d2f;
+  --text: #1a1a1a;
+  --muted: #888880;
+  --muted2: #bbbbaa;
+  --card: #ffffff;
+  --card-hover: #f9f9f4;
+  --red: #e03050;
+  --green: #16a34a;
+}
+
+[data-theme="sepia"] {
+  --bg: #f4efe6;
+  --surface: #fdf8f0;
+  --surface2: #ede8df;
+  --border: #ddd5c0;
+  --accent: #8b5e2a;
+  --accent2: #c0392b;
+  --text: #2c2416;
+  --muted: #9a8a70;
+  --muted2: #c5b89a;
+  --card: #fdf8f0;
+  --card-hover: #f7f2e8;
+  --red: #c0392b;
+  --green: #27ae60;
+}
+
+[data-theme="blue"] {
+  --bg: #f0f4ff;
+  --surface: #ffffff;
+  --surface2: #e8eeff;
+  --border: #d0d8f0;
+  --accent: #3b5bdb;
+  --accent2: #e03131;
+  --text: #1e2a4a;
+  --muted: #7a8ab0;
+  --muted2: #b0bcd8;
+  --card: #ffffff;
+  --card-hover: #f4f7ff;
+  --red: #e03131;
+  --green: #2f9e44;
+}
+
+[data-theme="oled"] {
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface2: #111111;
+  --border: #1e1e1e;
+  --accent: #facc15;
+  --accent2: #f97316;
+  --text: #ffffff;
+  --muted: #555555;
+  --muted2: #333333;
+  --card: #0d0d0d;
+  --card-hover: #141414;
+  --red: #ef4444;
+  --green: #22c55e;
+}
+
+[data-theme="forest"] {
+  --bg: #0d1a12;
+  --surface: #112018;
+  --surface2: #162a1e;
+  --border: #1e3828;
+  --accent: #4ade80;
+  --accent2: #fb923c;
+  --text: #d4f0dc;
+  --muted: #5a8a68;
+  --muted2: #2e5040;
+  --card: #121f18;
+  --card-hover: #182a20;
+  --red: #f87171;
+  --green: #4ade80;
+}
+
+/* theme picker panel */
+.theme-panel {
+  position: fixed;
+  top: 70px; right: 20px;
+  width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  z-index: 150;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  transform: translateY(-10px) scale(.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+}
+.theme-panel.open { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+
+.theme-panel-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.theme-list {
+  list-style: none;
+  padding: 8px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s;
+  border: 1px solid transparent;
+}
+.theme-option:hover { background: var(--surface2); }
+.theme-option.active { border-color: var(--accent); background: var(--surface2); }
+
+.theme-swatch {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.theme-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.theme-check {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 13px;
+  opacity: 0;
+}
+.theme-option.active .theme-check { opacity: 1; }
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -1000,6 +1151,7 @@ body {
         <span class="notif-dot" id="notifDot"></span>
       </button>
 
+      <button class="icon-btn" id="themeBtn" title="Switch theme">◐</button>
       <button class="icon-btn" id="refreshBtn" title="Refresh feeds">↺</button>
       <button class="icon-btn" id="gridBtn" title="Toggle layout" style="font-size:12px">⊞</button>
     </div>
@@ -1024,6 +1176,11 @@ body {
     <div class="modal-handle"></div>
     <div id="modalContent"></div>
   </div>
+</div>
+<!-- THEME PANEL -->
+<div class="theme-panel" id="themePanel">
+  <div class="theme-panel-header">Choose Theme</div>
+  <ul class="theme-list" id="themeList"></ul>
 </div>
 
 <!-- TOAST -->
@@ -1732,6 +1889,67 @@ async function init() {
       .catch(() => {});
   });
 }
+
+
+// ══════════════════════════════════════════
+//  THEME SWITCHER
+// ══════════════════════════════════════════
+const THEMES = [
+  { id: 'dark',   name: 'Dark',    icon: '🌑', bg: '#0a0a0c', accent: '#e8c547' },
+  { id: 'light',  name: 'Light',   icon: '☀️',  bg: '#f5f5f0', accent: '#c9a227' },
+  { id: 'sepia',  name: 'Sepia',   icon: '📜', bg: '#f4efe6', accent: '#8b5e2a' },
+  { id: 'blue',   name: 'Ocean',   icon: '🌊', bg: '#f0f4ff', accent: '#3b5bdb' },
+  { id: 'oled',   name: 'OLED',    icon: '⬛', bg: '#000000', accent: '#facc15' },
+  { id: 'forest', name: 'Forest',  icon: '🌿', bg: '#0d1a12', accent: '#4ade80' },
+];
+
+const THEME_KEY = 'feedflow_theme';
+let currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
+
+function applyTheme(id) {
+  currentTheme = id;
+  document.documentElement.setAttribute('data-theme', id === 'dark' ? '' : id);
+  localStorage.setItem(THEME_KEY, id);
+  renderThemePanel();
+  // Update theme button icon
+  const t = THEMES.find(t => t.id === id);
+  if (t) $('themeBtn').textContent = t.icon;
+}
+
+function renderThemePanel() {
+  const list = $('themeList');
+  list.innerHTML = THEMES.map(t => `
+    <li class="theme-option${currentTheme === t.id ? ' active' : ''}" data-id="${t.id}">
+      <div class="theme-swatch" style="background:${t.bg};border:1px solid rgba(128,128,128,.3)">${t.icon}</div>
+      <span class="theme-name">${t.name}</span>
+      <span class="theme-check">✓</span>
+    </li>`).join('');
+
+  list.querySelectorAll('.theme-option').forEach(el => {
+    el.addEventListener('click', () => {
+      applyTheme(el.dataset.id);
+      $('themePanel').classList.remove('open');
+    });
+  });
+}
+
+let themePanelOpen = false;
+$('themeBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  themePanelOpen = !themePanelOpen;
+  $('themePanel').classList.toggle('open', themePanelOpen);
+  if (themePanelOpen) renderThemePanel();
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#themePanel') && !e.target.closest('#themeBtn')) {
+    $('themePanel').classList.remove('open');
+    themePanelOpen = false;
+  }
+});
+
+// Apply saved theme on load
+applyTheme(currentTheme);
 
 init();
 </script>
