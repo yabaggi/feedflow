@@ -1069,7 +1069,7 @@ body {
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
-      <div class="logo-word">FeedFlow V2</div>
+      <div class="logo-word">FeedFlowx</div>
       <div class="logo-tagline">RSS Intelligence Reader</div>
     </div>
 
@@ -1084,15 +1084,32 @@ body {
       <div class="sidebar-label" style="margin-bottom:8px">Add from presets</div>
       <select class="add-feed-input" id="presetSelect" style="margin-bottom:8px;cursor:pointer">
         <option value="">— Pick a source —</option>
-        <optgroup label="Reddit">
+        <optgroup label="Reddit — Entrepreneurship">
           <option value="reddit::r/AppIdeas::https://www.reddit.com/r/AppIdeas/.rss::#e8c547">r/AppIdeas</option>
           <option value="reddit::r/startup_ideas::https://www.reddit.com/r/startup_ideas/.rss::#ff6b35">r/startup_ideas</option>
           <option value="reddit::r/SideProject::https://www.reddit.com/r/SideProject/.rss::#4ade80">r/SideProject</option>
           <option value="reddit::r/startups::https://www.reddit.com/r/startups/.rss::#60a5fa">r/startups</option>
           <option value="reddit::r/SaaS::https://www.reddit.com/r/SaaS/.rss::#c084fc">r/SaaS</option>
-          <option value="reddit::r/webdev::https://www.reddit.com/r/webdev/.rss::#f472b6">r/webdev</option>
-          <option value="reddit::r/programming::https://www.reddit.com/r/programming/.rss::#34d399">r/programming</option>
-          <option value="reddit::r/artificial::https://www.reddit.com/r/artificial/.rss::#fb923c">r/artificial</option>
+          <option value="reddit::r/Entrepreneur::https://www.reddit.com/r/Entrepreneur/.rss::#f472b6">r/Entrepreneur</option>
+          <option value="reddit::r/smallbusiness::https://www.reddit.com/r/smallbusiness/.rss::#34d399">r/smallbusiness</option>
+        </optgroup>
+        <optgroup label="Reddit — Tech">
+          <option value="reddit::r/webdev::https://www.reddit.com/r/webdev/.rss::#fb923c">r/webdev</option>
+          <option value="reddit::r/programming::https://www.reddit.com/r/programming/.rss::#e8c547">r/programming</option>
+          <option value="reddit::r/artificial::https://www.reddit.com/r/artificial/.rss::#ff6b35">r/artificial</option>
+          <option value="reddit::r/MachineLearning::https://www.reddit.com/r/MachineLearning/.rss::#4ade80">r/MachineLearning</option>
+          <option value="reddit::r/javascript::https://www.reddit.com/r/javascript/.rss::#60a5fa">r/javascript</option>
+          <option value="reddit::r/Python::https://www.reddit.com/r/Python/.rss::#c084fc">r/Python</option>
+          <option value="reddit::r/golang::https://www.reddit.com/r/golang/.rss::#f472b6">r/golang</option>
+          <option value="reddit::r/devops::https://www.reddit.com/r/devops/.rss::#34d399">r/devops</option>
+          <option value="reddit::r/selfhosted::https://www.reddit.com/r/selfhosted/.rss::#fb923c">r/selfhosted</option>
+        </optgroup>
+        <optgroup label="Reddit — General">
+          <option value="reddit::r/technology::https://www.reddit.com/r/technology/.rss::#e8c547">r/technology</option>
+          <option value="reddit::r/worldnews::https://www.reddit.com/r/worldnews/.rss::#ff6b35">r/worldnews</option>
+          <option value="reddit::r/science::https://www.reddit.com/r/science/.rss::#4ade80">r/science</option>
+          <option value="reddit::r/books::https://www.reddit.com/r/books/.rss::#60a5fa">r/books</option>
+          <option value="reddit::r/productivity::https://www.reddit.com/r/productivity/.rss::#c084fc">r/productivity</option>
         </optgroup>
         <optgroup label="Tech News">
           <option value="rss::Hacker News::https://news.ycombinator.com/rss::#e8c547">Hacker News</option>
@@ -1100,18 +1117,29 @@ body {
           <option value="rss::The Verge::https://www.theverge.com/rss/index.xml::#4ade80">The Verge</option>
           <option value="rss::Ars Technica::https://feeds.arstechnica.com/arstechnica/index::#60a5fa">Ars Technica</option>
           <option value="rss::Wired::https://www.wired.com/feed/rss::#c084fc">Wired</option>
+          <option value="rss::MIT Tech Review::https://www.technologyreview.com/feed/::#f472b6">MIT Tech Review</option>
         </optgroup>
         <optgroup label="Dev & Product">
-          <option value="rss::CSS Tricks::https://css-tricks.com/feed/::#f472b6">CSS-Tricks</option>
-          <option value="rss::Smashing Mag::https://www.smashingmagazine.com/feed/::#34d399">Smashing Magazine</option>
           <option value="rss::Dev.to::https://dev.to/feed::#fb923c">Dev.to</option>
-          <option value="rss::Product Hunt::https://www.producthunt.com/feed::#e8c547">Product Hunt</option>
-          <option value="rss::Indie Hackers::https://www.indiehackers.com/feed.xml::#60a5fa">Indie Hackers</option>
+          <option value="rss::Indie Hackers::https://www.indiehackers.com/feed.xml::#e8c547">Indie Hackers</option>
+          <option value="rss::Product Hunt::https://www.producthunt.com/feed::#ff6b35">Product Hunt</option>
+          <option value="rss::Smashing Mag::https://www.smashingmagazine.com/feed/::#4ade80">Smashing Magazine</option>
+          <option value="rss::CSS Tricks::https://css-tricks.com/feed/::#60a5fa">CSS-Tricks</option>
+          <option value="rss::HackerNoon::https://hackernoon.com/feed::#c084fc">HackerNoon</option>
+          <option value="rss::Lobsters::https://lobste.rs/rss::#f472b6">Lobste.rs</option>
         </optgroup>
         <optgroup label="AI & Science">
-          <option value="rss::MIT Tech Review::https://www.technologyreview.com/feed/::#ff6b35">MIT Tech Review</option>
-          <option value="rss::OpenAI Blog::https://openai.com/news/rss.xml::#4ade80">OpenAI Blog</option>
-          <option value="rss::HackerNoon::https://hackernoon.com/feed::#c084fc">HackerNoon</option>
+          <option value="rss::OpenAI Blog::https://openai.com/news/rss.xml::#34d399">OpenAI Blog</option>
+          <option value="rss::Anthropic::https://www.anthropic.com/rss.xml::#fb923c">Anthropic</option>
+          <option value="rss::Google AI::https://blog.google/technology/ai/rss/::#e8c547">Google AI Blog</option>
+          <option value="rss::Towards DS::https://towardsdatascience.com/feed::#ff6b35">Towards Data Science</option>
+          <option value="rss::Nature::https://www.nature.com/nature.rss::#4ade80">Nature</option>
+        </optgroup>
+        <optgroup label="Business & Finance">
+          <option value="rss::Y Combinator::https://www.ycombinator.com/feed.xml::#60a5fa">Y Combinator</option>
+          <option value="rss::a16z::https://a16z.com/feed/::#c084fc">Andreessen Horowitz</option>
+          <option value="rss::First Round::https://review.firstround.com/rss.xml::#f472b6">First Round Review</option>
+          <option value="rss::Harvard Biz::https://hbr.org/resources/rss/topics/rss.xml::#34d399">Harvard Business Review</option>
         </optgroup>
       </select>
       <button class="add-feed-btn" id="presetAddBtn" style="margin-bottom:10px">＋ Add Selected</button>
@@ -1191,18 +1219,61 @@ body {
 //  CONFIG
 // ══════════════════════════════════════════
 const DEFAULT_FEEDS = [
-  // Reddit (backend auto-switches to JSON API)
+  // Reddit — fetched directly from browser (not via Netlify function)
   { url: "https://www.reddit.com/r/AppIdeas/.rss",       name: "r/AppIdeas",       color: "#e8c547" },
   { url: "https://www.reddit.com/r/startup_ideas/.rss",  name: "r/startup_ideas",  color: "#ff6b35" },
   { url: "https://www.reddit.com/r/SideProject/.rss",    name: "r/SideProject",    color: "#4ade80" },
   { url: "https://www.reddit.com/r/startups/.rss",       name: "r/startups",       color: "#60a5fa" },
   { url: "https://www.reddit.com/r/SaaS/.rss",           name: "r/SaaS",           color: "#c084fc" },
-  // Other sources
+  // Tech news
   { url: "https://news.ycombinator.com/rss",             name: "Hacker News",      color: "#fb923c" },
   { url: "https://dev.to/feed",                          name: "Dev.to",            color: "#34d399" },
+  { url: "https://www.indiehackers.com/feed.xml",        name: "Indie Hackers",    color: "#60a5fa" },
 ];
 
-const API = (url) => `/.netlify/functions/rss?url=${encodeURIComponent(url)}`;
+const API     = (url) => `/.netlify/functions/rss?url=${encodeURIComponent(url)}`;
+const IS_REDDIT = (url) => url.includes('reddit.com');
+
+// Convert reddit .rss URL → direct JSON URL (browser fetch, no Netlify needed)
+function redditJsonUrl(url) {
+  const sub = url.match(/\/r\/([^/?#]+)/)?.[1];
+  if (!sub) return null;
+  return `https://www.reddit.com/r/${sub}/hot.json?limit=25`;
+}
+
+// Parse Reddit JSON response into our standard item shape
+function parseRedditJson(data, feedObj) {
+  const posts = data?.data?.children || [];
+  const sub   = feedObj.url.match(/\/r\/([^/?#]+)/)?.[1] || 'reddit';
+  const channel = { title: `r/${sub}` };
+
+  const items = posts
+    .filter(({ data: p }) => p && p.title)
+    .map(({ data: p }) => {
+      let thumbnail = '';
+      if (p.preview?.images?.[0]?.source?.url) {
+        thumbnail = p.preview.images[0].source.url.replace(/&amp;/g, '&');
+      } else if (p.thumbnail?.startsWith('http')) {
+        thumbnail = p.thumbnail;
+      }
+      const description = (p.selftext || p.url_overridden_by_dest || '')
+        .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+      return {
+        title:       p.title || '',
+        link:        `https://reddit.com${p.permalink}`,
+        description,
+        pubDate:     new Date(p.created_utc * 1000).toISOString(),
+        author:      p.author || '',
+        thumbnail,
+        guid:        p.id || p.name,
+        category:    p.link_flair_text || '',
+        score:       p.score || 0,
+        numComments: p.num_comments || 0,
+      };
+    });
+
+  return { channel, items, fetchedAt: new Date().toISOString() };
+}
 const CACHE_KEY = 'feedflow_cache';
 const SAVED_KEY = 'feedflow_saved';
 const FEEDS_KEY = 'feedflow_feeds';
@@ -1281,9 +1352,24 @@ async function fetchFeed(feedObj) {
       return state.cached[url];
     }
 
-    const res = await fetch(API(url));
-    if (!res.ok) throw new Error('Fetch failed');
-    const data = await res.json();
+    let data;
+
+    if (IS_REDDIT(url)) {
+      // Fetch Reddit directly from the browser — bypasses Netlify/AWS IP block
+      const jsonUrl = redditJsonUrl(url);
+      if (!jsonUrl) throw new Error('Invalid Reddit URL');
+      const res = await fetch(jsonUrl, {
+        headers: { 'Accept': 'application/json' },
+      });
+      if (!res.ok) throw new Error(`Reddit returned HTTP ${res.status}`);
+      const raw = await res.json();
+      data = parseRedditJson(raw, feedObj);
+    } else {
+      // All other feeds go through the Netlify function (handles CORS + XML parsing)
+      const res = await fetch(API(url));
+      if (!res.ok) throw new Error('Fetch failed');
+      data = await res.json();
+    }
 
     // Detect new items for notifications
     if (state.cached[url]) {
