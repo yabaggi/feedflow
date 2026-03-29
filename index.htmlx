@@ -312,22 +312,6 @@ body {
   color: var(--accent);
 }
 
-.feed-delete {
-  background: none;
-  border: none;
-  color: var(--muted2);
-  font-size: 13px;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity .15s, color .15s;
-  flex-shrink: 0;
-}
-.feed-item:hover .feed-delete { opacity: 1; }
-.feed-delete:hover { color: var(--red) !important; }
-
 .feed-loading-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
@@ -1479,46 +1463,17 @@ function renderSidebar() {
       <span class="feed-dot" style="background:${state.active === i ? feed.color || '#e8c547' : 'var(--muted2)'}; ${state.active === i ? `box-shadow: 0 0 8px ${feed.color || '#e8c547'}` : ''}"></span>
       <span class="feed-name">${esc(feed.name)}</span>
       ${loading ? `<span class="feed-loading-dot"></span>` : `<span class="feed-count">${count}</span>`}
-      <button class="feed-delete" title="Remove feed" data-idx="${i}">✕</button>
     `;
-    li.querySelector('.feed-name, .feed-dot, .feed-count, .feed-loading-dot')?.addEventListener?.('click', () => {});
-    li.onclick = (e) => {
-      if (e.target.closest('.feed-delete')) return; // don't activate on delete click
+    li.onclick = () => {
       state.active = i;
       state.filter = 'all';
       renderAll();
     };
-    li.querySelector('.feed-delete').addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteFeed(i);
-    });
     list.appendChild(li);
   });
 }
 
 function renderSidebarCounts() { renderSidebar(); }
-
-function deleteFeed(i) {
-  const feed = state.feeds[i];
-  if (!feed) return;
-
-  // Prevent deleting default feeds? No — allow deleting any feed
-  state.feeds.splice(i, 1);
-
-  // Clean up loaded data and cache for this feed
-  delete state.allLoaded[feed.url];
-
-  // Adjust active index
-  if (state.active === i) {
-    state.active = state.feeds.length > 0 ? 0 : 'all';
-  } else if (typeof state.active === 'number' && state.active > i) {
-    state.active = state.active - 1;
-  }
-
-  saveState();
-  renderAll();
-  toast(`Removed ${feed.name}`, 'info');
-}
 
 // ══════════════════════════════════════════
 //  RENDER MAIN
@@ -1895,10 +1850,7 @@ $('addFeedBtn').addEventListener('click', async () => {
   if (!url.startsWith('http')) { toast('Enter a valid URL', 'error'); return; }
   if (state.feeds.find(f => f.url === url)) { toast('Feed already added', 'error'); return; }
 
-  // Extract domain name e.g. "africaintelligence" from https://www.africaintelligence.com/info/rss
-  const hostname = new URL(url).hostname.replace(/^www\./, '');
-  const domain   = hostname.split('.')[0];          // "africaintelligence"
-  const name     = domain.charAt(0).toUpperCase() + domain.slice(1) || 'Feed';
+  const name = url.split('/').filter(Boolean).pop() || 'Feed';
   const colors = ['#e8c547','#ff6b35','#4ade80','#60a5fa','#c084fc','#f472b6','#34d399'];
   const color = colors[state.feeds.length % colors.length];
 
@@ -2146,3 +2098,4 @@ window.addEventListener('appinstalled', () => {
 </script>
 </body>
 </html>
+
