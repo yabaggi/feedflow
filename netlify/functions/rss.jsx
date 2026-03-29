@@ -30,88 +30,25 @@ function fetchUrl(urlStr, customHeaders = {}) {
   });
 }
 
-// ── HTTP POST helper (for OAuth token request) ────────────────────────────
-function postUrl(urlStr, body, customHeaders = {}) {
-  return new Promise((resolve, reject) => {
-    const urlObj = new URL(urlStr);
-    const options = {
-      hostname: urlObj.hostname,
-      path: urlObj.pathname + urlObj.search,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(body),
-        ...customHeaders,
-      },
-    };
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode !== 200) {
-          return reject(new Error(`HTTP ${res.statusCode}: ${data}`));
-        }
-        resolve(data);
-      });
-    });
-    req.on('error', reject);
-    req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')); });
-    req.write(body);
-    req.end();
-  });
+// ── Check if Reddit blocked the response ──────────────────────────────────
+function isRedditBlocked(raw) {
+  return (
+    raw.includes('whoa there') ||
+    raw.includes('Our CDN was unable') ||
+    raw.includes('please try again') ||
+    raw.trimStart().startsWith('<!') ||   // any HTML page = blocked
+    raw.trimStart().startsWith('<html')
+  );
 }
 
-// ── Reddit OAuth: get app-only access token ───────────────────────────────
-// Uses client_credentials grant — no user login needed, free tier, 60 req/min
-async function getRedditToken() {
-  const clientId     = process.env.REDDIT_CLIENT_ID;
-  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('REDDIT_CLIENT_ID / REDDIT_CLIENT_SECRET env vars not set');
-  }
-
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  const body = 'grant_type=client_credentials';
-
-  const raw = await postUrl('https://www.reddit.com/api/v1/access_token', body, {
-    'Authorization': `Basic ${credentials}`,
-    'User-Agent': 'FeedFlow/1.0 (by /u/feedflow_app)',
-  });
-
-  const data = JSON.parse(raw);
-  if (!data.access_token) throw new Error(`Token error: ${JSON.stringify(data)}`);
-  return data.access_token;
-}
-
-// ── Fetch subreddit via authenticated OAuth API ───────────────────────────
-async function fetchRedditOAuth(urlParam) {
-  const token = await getRedditToken();
-
-  // Convert reddit.com URL → oauth.reddit.com URL
-  // e.g. https://www.reddit.com/r/SaaS/.rss → https://oauth.reddit.com/r/SaaS.json
-  const subMatch = urlParam.match(/\/r\/([^/?#]+)/);
-  if (!subMatch) throw new Error('Could not extract subreddit from URL');
-  const subreddit = subMatch[1];
-
-  const apiUrl = `https://oauth.reddit.com/r/${subreddit}/hot.json?limit=25`;
-  console.log(`Reddit OAuth: fetching ${apiUrl}`);
-
-  const raw = await fetchUrl(apiUrl, {
-    'Authorization': `Bearer ${token}`,
-    'User-Agent': 'FeedFlow/1.0 (by /u/feedflow_app)',
-    'Accept': 'application/json',
-  });
-
-  return { raw, subreddit };
-}
-
-// ── Parse Reddit OAuth JSON response ─────────────────────────────────────
-function parseRedditJson(raw, subreddit) {
+// ── Parse Reddit's native JSON API response ───────────────────────────────
+function parseRedditJson(raw, urlParam) {
   const data = JSON.parse(raw);
   const posts = data?.data?.children || [];
-  const channel = { title: `r/${subreddit}` };
+
+  const subMatch = urlParam.match(/\/r\/([^/?]+)/);
+  const subName  = subMatch ? `r/${subMatch[1]}` : 'Reddit';
+  const channel  = { title: posts[0]?.data?.subreddit_name_prefixed || subName };
 
   const items = posts
     .filter(({ data: p }) => p && (p.title || p.url))
@@ -127,18 +64,45 @@ function parseRedditJson(raw, subreddit) {
         .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
 
       return {
-        title:       p.title        || '',
+        title:       p.title       || '',
         link:        `https://reddit.com${p.permalink}`,
         description,
         pubDate:     new Date(p.created_utc * 1000).toISOString(),
-        author:      p.author       || '',
+        author:      p.author      || '',
         thumbnail,
-        guid:        p.id           || p.name,
+        guid:        p.id          || p.name,
         category:    p.link_flair_text || '',
-        score:       p.score        || 0,
+        score:       p.score       || 0,
         numComments: p.num_comments || 0,
       };
     });
+
+  return { channel, items };
+}
+
+// ── Parse rss2json.com proxy response ────────────────────────────────────
+function parseRss2Json(raw, urlParam) {
+  const data = JSON.parse(raw);
+
+  if (data.status !== 'ok') {
+    throw new Error(`rss2json error: ${data.message || 'unknown'}`);
+  }
+
+  const subMatch = urlParam.match(/\/r\/([^/?]+)/);
+  const subName  = subMatch ? `r/${subMatch[1]}` : (data.feed?.title || 'Reddit');
+  const channel  = { title: data.feed?.title || subName };
+
+  const items = (data.items || []).map(p => ({
+    title:       p.title       || '',
+    link:        p.link        || '',
+    description: (p.description || p.content || '')
+      .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300),
+    pubDate:     p.pubDate ? new Date(p.pubDate).toISOString() : new Date().toISOString(),
+    author:      p.author      || '',
+    thumbnail:   p.thumbnail   || '',
+    guid:        p.guid        || p.link,
+    category:    Array.isArray(p.categories) ? (p.categories[0] || '') : '',
+  }));
 
   return { channel, items };
 }
@@ -250,20 +214,6 @@ exports.handler = async function (event) {
     return { statusCode: 200, headers, body: '' };
   }
 
-  // ── PROXY PATH: forward any URL and return raw response ────────────────
-  // Used for APIs that block CORS (e.g. feedsearch.dev)
-  const proxyParam = event.queryStringParameters?.proxy;
-  if (proxyParam) {
-    try {
-      console.log(`Proxy fetching: ${proxyParam}`);
-      const raw = await fetchUrl(proxyParam, { 'Accept': 'application/json' });
-      return { statusCode: 200, headers, body: raw };
-    } catch (err) {
-      console.error('Proxy error:', err.message);
-      return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
-    }
-  }
-
   const urlParam = event.queryStringParameters?.url;
   if (!urlParam) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing url parameter' }) };
@@ -272,11 +222,38 @@ exports.handler = async function (event) {
   try {
     const isReddit = urlParam.includes('reddit.com');
 
-    // ── REDDIT PATH: proper OAuth ─────────────────────────────────────────
+    // ── REDDIT PATH ──────────────────────────────────────────────────────
     if (isReddit) {
-      const { raw, subreddit } = await fetchRedditOAuth(urlParam);
-      const { channel, items } = parseRedditJson(raw, subreddit);
-      console.log(`Reddit OAuth → ${items.length} items from r/${subreddit}`);
+      // Step 1: try Reddit's own JSON API
+      const jsonUrl = urlParam
+        .replace(/\/\.rss(\?.*)?$/, '.json$1')
+        .replace(/\.rss(\?.*)?$/,   '.json$1');
+
+      let raw, usedProxy = false;
+
+      try {
+        console.log(`Reddit: trying direct JSON → ${jsonUrl}`);
+        raw = await fetchUrl(jsonUrl, {
+          'User-Agent': 'FeedFlow/1.0 (personal RSS reader)',
+          'Accept': 'application/json',
+        });
+
+        if (isRedditBlocked(raw)) {
+          throw new Error('Reddit blocked the direct request (datacenter IP)');
+        }
+      } catch (directErr) {
+        // Step 2: fall back to rss2json.com proxy
+        console.log(`Reddit direct failed (${directErr.message}), trying rss2json proxy…`);
+        const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(urlParam)}&count=25`;
+        raw = await fetchUrl(proxyUrl, { 'Accept': 'application/json' });
+        usedProxy = true;
+      }
+
+      const { channel, items } = usedProxy
+        ? parseRss2Json(raw, urlParam)
+        : parseRedditJson(raw, urlParam);
+
+      console.log(`Reddit (${usedProxy ? 'rss2json proxy' : 'direct'}) → ${items.length} items`);
 
       return {
         statusCode: 200,
@@ -285,8 +262,9 @@ exports.handler = async function (event) {
       };
     }
 
-    // ── GENERIC RSS / ATOM PATH ───────────────────────────────────────────
+    // ── GENERIC RSS / ATOM PATH ──────────────────────────────────────────
     const raw = await fetchUrl(urlParam);
+    console.log(`Feed preview: ${raw.slice(0, 120).replace(/\n/g, ' ')}`);
 
     let result;
     if (raw.includes('<feed') || raw.includes('xmlns="http://www.w3.org/2005/Atom"')) {

@@ -2435,7 +2435,9 @@ async function runFeedSearch() {
       searchQuery = 'https://' + searchQuery;
     }
 
-    const res = await fetch(`https://feedsearch.dev/api/v1/search?url=${encodeURIComponent(searchQuery)}&info=true&favicon=false`);
+    // Route through Netlify function — feedsearch.dev blocks direct browser requests (no CORS)
+    const feedsearchUrl = `https://feedsearch.dev/api/v1/search?url=${encodeURIComponent(searchQuery)}&info=true&favicon=false`;
+    const res = await fetch(`/.netlify/functions/rss?proxy=${encodeURIComponent(feedsearchUrl)}`);
 
     if (!res.ok) throw new Error(`Search API returned ${res.status}`);
     const data = await res.json();
