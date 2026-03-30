@@ -1,4 +1,4 @@
-const CACHE_NAME = 'feedflow-v5';
+const CACHE_NAME = 'feedflow-v6';
 
 // Files to cache immediately on install (app shell)
 const SHELL_ASSETS = [

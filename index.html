@@ -1377,7 +1377,17 @@ body {
       <!-- Custom URL -->
       <div class="sidebar-label" style="margin-bottom:8px">Or add custom URL</div>
       <input class="add-feed-input" id="addFeedInput" type="url" placeholder="https://example.com/feed.rss"/>
-      <button class="add-feed-btn" id="addFeedBtn">＋ Add Feed</button>
+
+      <!-- Name confirmation row — shown after URL is entered -->
+      <div id="addFeedNameRow" style="display:none;margin-top:6px;gap:6px;flex-direction:column">
+        <input class="add-feed-input" id="addFeedNameInput" type="text" placeholder="Feed name…"/>
+        <div style="display:flex;gap:6px">
+          <button class="add-feed-btn" id="addFeedConfirmBtn" style="flex:1">＋ Add</button>
+          <button class="add-feed-btn" id="addFeedCancelBtn" style="flex:0 0 auto;background:var(--surface2);color:var(--muted);border:1px solid var(--border)">✕</button>
+        </div>
+      </div>
+
+      <button class="add-feed-btn" id="addFeedBtn" style="margin-top:6px">Next →</button>
     </div>
 
     <div class="sidebar-footer">
@@ -2124,37 +2134,68 @@ $('presetAddBtn').addEventListener('click', async () => {
   } catch { toast('Could not load feed', 'error'); }
 });
 
-$('addFeedBtn').addEventListener('click', async () => {
+// ── Step 1: user enters URL → show name field pre-filled with domain ────
+function showAddFeedNameStep() {
   const url = $('addFeedInput').value.trim();
   if (!url) return;
   if (!url.startsWith('http')) { toast('Enter a valid URL', 'error'); return; }
   if (state.feeds.find(f => f.url === url)) { toast('Feed already added', 'error'); return; }
 
-  // Extract domain name e.g. "africaintelligence" from https://www.africaintelligence.com/info/rss
-  const hostname = new URL(url).hostname.replace(/^www\./, '');
-  const domain   = hostname.split('.')[0];          // "africaintelligence"
-  const name     = domain.charAt(0).toUpperCase() + domain.slice(1) || 'Feed';
+  // Default name = URL stripped of http://, https://, and www.
+  // e.g. http://www.bbc.co.uk/arabic/multimedia/index.xml → bbc.co.uk/arabic/multimedia/index.xml
+  const guessedName = url.replace(/^https?:\/\//, '').replace(/^\/\//, '').replace(/^www\./, '');
+
+  $('addFeedNameInput').value = guessedName;
+  $('addFeedNameRow').style.display = 'flex';
+  $('addFeedBtn').style.display = 'none';
+  $('addFeedInput').disabled = true;
+  setTimeout(() => {
+    $('addFeedNameInput').focus();
+    $('addFeedNameInput').select();
+  }, 50);
+}
+
+// ── Step 2: user confirms name → add the feed ─────────────────────────────
+async function confirmAddFeed() {
+  const url  = $('addFeedInput').value.trim();
+  const name = $('addFeedNameInput').value.trim() || 'Feed';
   const colors = ['#e8c547','#ff6b35','#4ade80','#60a5fa','#c084fc','#f472b6','#34d399'];
-  const color = colors[state.feeds.length % colors.length];
+  const color  = colors[state.feeds.length % colors.length];
+
+  resetAddFeedForm();
 
   state.feeds.push({ url, name, color });
   saveState();
-  $('addFeedInput').value = '';
-
   state.active = state.feeds.length - 1;
   renderSidebar();
 
   try {
     await fetchFeed(state.feeds[state.active]);
     renderAll();
-    toast('Feed added!', 'success');
+    toast(`Added "${name}"!`, 'success');
   } catch {
     toast('Could not load feed', 'error');
   }
-});
+}
+
+function resetAddFeedForm() {
+  $('addFeedInput').value = '';
+  $('addFeedInput').disabled = false;
+  $('addFeedNameInput').value = '';
+  $('addFeedNameRow').style.display = 'none';
+  $('addFeedBtn').style.display = 'block';
+}
+
+$('addFeedBtn').addEventListener('click', showAddFeedNameStep);
+$('addFeedConfirmBtn').addEventListener('click', confirmAddFeed);
+$('addFeedCancelBtn').addEventListener('click', resetAddFeedForm);
 
 $('addFeedInput').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') $('addFeedBtn').click();
+  if (e.key === 'Enter') showAddFeedNameStep();
+});
+$('addFeedNameInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') confirmAddFeed();
+  if (e.key === 'Escape') resetAddFeedForm();
 });
 
 // ══════════════════════════════════════════
